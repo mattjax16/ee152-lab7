@@ -18,12 +18,16 @@
 #include <stdbool.h>
 #include "lib_ee152.h"
 
+// #define DAC2_TARGET  A0
+#define DAC2_TARGET  A4
+
 // Dual_QRS indicates that both the left & right side of the algorithm believe
 // we have a QRS, and that we're not in the refractory period.
 // Dual_QRS_last is just a one-cycle-delayed version of dual_QRS; it's used to
 // detect the rising edge of dual_QRS.
 static bool dual_QRS = false;
 static bool dual_QRS_last = false;
+
 
 //****************************************************
 // Biquad filtering.
@@ -192,7 +196,7 @@ void task_main_loop (void *pvParameters) {
 	vTaskDelay (READ_WRITE_DELAY);
 
 	// Read ADC, using a spin-wait loop.
-	uint32_t sample = analogRead (A0);
+	uint32_t sample = analogRead (DAC2_TARGET);
 	sample *= 2;
 	analogWrite (A4, sample);
 
