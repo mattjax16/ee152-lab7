@@ -329,7 +329,7 @@ void task_displaybpm(void *pvParameters) {
 }
 
 #define TICKS_PER_PT 2	// Typically 500 Hz sampling, so TICKS_PER_PT=2
-#define ECG_DATA_FILE "ecg_normal_board_calm2.txt"
+#define ECG_DATA_FILE "ecg_normal_board_calm1.txt"
 static unsigned short int ECG_data[] = {
 #include ECG_DATA_FILE
 };

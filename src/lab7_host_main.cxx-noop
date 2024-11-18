@@ -208,7 +208,7 @@ int main() {
 
     for ( ;; ) {
 	// Read ADC, using a spin-wait loop.
-	uint32_t sample = analogRead ("ecg_normal_board_calm2.txt");
+	uint32_t sample = analogRead ("ecg_normal_board_calm1.txt");
 	sample *= 2;
 	if (sample == -1) break;
 
