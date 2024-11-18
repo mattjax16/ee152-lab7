@@ -1,0 +1,32 @@
+# JetBrains IDE
+.idea/
+
+# VS Code
+.vscode/
+# Cmake Debug
+cmake-build-debug/
+
+# macOS
+.DS_Store
+._*
+
+# Compiled binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Compiled Python files
+*.pyc
+__pycache__/
+
+# Compiled Java files
+*.class
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# for embedded
+.pio/
