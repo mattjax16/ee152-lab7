@@ -19,7 +19,7 @@
 #include "lib_ee152.h"
 
 // #define DAC2_TARGET  A0
-#define DAC2_TARGET  A4
+#define DAC2_TARGET  A3
 
 // Dual_QRS indicates that both the left & right side of the algorithm believe
 // we have a QRS, and that we're not in the refractory period.
@@ -197,7 +197,7 @@ void task_main_loop (void *pvParameters) {
 
 	// Read ADC, using a spin-wait loop.
 	uint32_t sample = analogRead (DAC2_TARGET);
-	sample *= 2;
+	// sample *= 2;
 	analogWrite (A4, sample);
 
 	// Run it through one or more cascaded biquads.
