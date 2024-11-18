@@ -19,7 +19,7 @@
 #include "lib_ee152.h"
 
 // #define DAC2_TARGET  A0
-#define DAC2_TARGET  A4
+#define DAC2_TARGET  A3
 
 // Dual_QRS indicates that both the left & right side of the algorithm believe
 // we have a QRS, and that we're not in the refractory period.
