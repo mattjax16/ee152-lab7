@@ -8,18 +8,19 @@
 #define portTICK_PERIOD_MS 1
 #define tskIDLE_PRIORITY 0
 typedef int TickType_t;
-TickType_t xTaskGetTickCount(void) { return tick_count; }
 static int tick_count = 0;
+TickType_t xTaskGetTickCount(void) { return tick_count; }
+
 
 // Mock analog functions
 static FILE* input_file = NULL;
 uint32_t analogRead(int pin) {
     static uint32_t value;
-    if (fscanf(input_file, "%u", &value) == 1) {
+    if (fscanf(input_file, "%u,", &value) == 1) {
         return value;
     }
     rewind(input_file);  // Loop the data
-    fscanf(input_file, "%u", &value);
+    fscanf(input_file, "%u,", &value);
     return value;
 }
 
@@ -73,10 +74,10 @@ int main() {
         return 1;
     }
 
-    // Initialize plot file
-    FILE* gnuplot = fopen("ECG_FILE", "w");
-    fprintf(gnuplot, "# Time Raw Filtered Derivative ThresholdCrossing\n");
-    fclose(gnuplot);
+    // // Initialize plot file
+    // FILE* gnuplot = fopen("ECG_FILE", "w");
+    // fprintf(gnuplot, "# Time Raw Filtered Derivative ThresholdCrossing\n");
+    // fclose(gnuplot);
 
     // Main processing loop
     for (int i = 0; i < 1000; i++) {  // Process 1000 samples for testing
@@ -110,7 +111,7 @@ int main() {
     fclose(script);
 
     // Execute gnuplot
-    system("gnuplot plot_script.gnu");
+    // system("gnuplot plot_script.gnu");
     
     return 0;
 }
