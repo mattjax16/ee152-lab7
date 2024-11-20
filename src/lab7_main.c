@@ -278,40 +278,40 @@ void USART_write_byte (unsigned char c) {
 
 // Output a float in [0,999.9] to a 4-digit LCD.
 static void float_to_LCD (float f) {
-    // Convert to fixed point. Three digits to the left of the decimal point,
+    // Round to fixed point. Three digits to the left of the decimal point,
     // and one to the right.
-    int fixed = f*10 + .5;
+    int number = f*10 + .5;
 
-    USART_write_byte (0x76);	// Clear the display.
+    USART_write_byte (0x76);		// Clear display, set cursor to pos 0
 
-    if (fixed > 9999) {			// Detect overflow (print "OF").
-	USART_write_byte (0x00);
-	USART_write_byte (0x0F);
+    if (number > 9999) {			// Detect overflow (print "OF").
+	USART_write_byte ('0');
+	USART_write_byte ('F');
 	return;
     }
 
     // We have an integer in [0,9999]. Output the four digits, MSB first.
     int power[4]={1,10,100,1000};	// so power[i] = 10**i.
-    int all_zeros=1;			// True iff outputted all zeros so far.
+    int all_zeros_so_far=1;		// True iff outputted all zeros so far.
     for (int pos=3; pos >=0; --pos) {
 	int add=power[pos], sum=0;
 	for (int i=0;; ++i) {
 	    sum += add;
-	    if (sum > fixed) {
-		fixed -= (sum-add);
-		all_zeros &= (i==0);
+	    if (sum > number) {
+		number -= (sum-add);
+		all_zeros_so_far &= (i==0);
 		// Output the digit (i);
-		if (all_zeros)
+		if (all_zeros_so_far)
 		    USART_write_byte (0x20);	// Space, not leading 0
 		else
-		    USART_write_byte (i);
+		    USART_write_byte ('0'+i);
 
 		break;	// on to the next LSB-most position.
 	    }
 	}
     }
-    USART_write_byte (0x77);	// Decimal point.
-    USART_write_byte (0x04);	// Decimal point.
+    USART_write_byte (0x77);	// Command to write decimal point(s) or colon...
+    USART_write_byte (0x04);	// ... and write the 2nd decimal point
 }
 
 void task_displaybpm(void *pvParameters) {
@@ -369,7 +369,7 @@ int main() {
     // We use the UART to talk to the 7-segment display. Initialize the UART,
     // and kick off the display with any old value.
     serial_begin (USART1);
-    float_to_LCD (125.2);
+    float_to_LCD (40.2);
 
     // Create tasks.
     TaskHandle_t task_handle_grn = NULL;
