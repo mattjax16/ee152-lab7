@@ -194,9 +194,9 @@ void task_main_loop (void *pvParameters) {
 	// Read ADC, using a spin-wait loop.
 	uint32_t sample = analogRead (A0);
 	//sample *= 2;
-	uint32_t output = sample >> 4;
-	//output *= 0.5;
-	analogWrite (A4, output);
+	uint8_t dac_output = sample >> 4;
+	//dac_output *= 2;
+	analogWrite (A4, dac_output);
 
 	// Run it through one or more cascaded biquads.
 	int filtered = sample;
