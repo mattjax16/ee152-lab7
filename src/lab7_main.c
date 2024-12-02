@@ -214,6 +214,8 @@ void task_main_loop (void *pvParameters) {
 	// Fancy 5-point derivative of the bandpass-filtered signal.
 	int deriv_2 = deriv_5pt (filtered, &deriv_5pt_state);
 	int deriv_sq_2 = deriv_2 * deriv_2;
+	uint8_t deriv_2_out = (deriv_2 + 2048) >> 4;
+	analogWrite (A4, deriv_2_out);
 
 	// Running_avg over a 200ms window.
 	int avg_200ms_2 = window_ravg(deriv_sq_2);
