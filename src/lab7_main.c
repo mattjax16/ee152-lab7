@@ -196,7 +196,7 @@ void task_main_loop (void *pvParameters) {
 	//sample *= 2;
 	uint8_t dac_output = sample >> 4;
 	//dac_output *= 2;
-	analogWrite (A4, dac_output);
+	//analogWrite (A4, dac_output);
 
 	// Run it through one or more cascaded biquads.
 	int filtered = sample;
@@ -214,7 +214,7 @@ void task_main_loop (void *pvParameters) {
 	// Fancy 5-point derivative of the bandpass-filtered signal.
 	int deriv_2 = deriv_5pt (filtered, &deriv_5pt_state);
 	int deriv_sq_2 = deriv_2 * deriv_2;
-	uint8_t deriv_2_out = (deriv_2 + 2048) >> 4;
+	uint8_t deriv_2_out = (deriv_2);
 	analogWrite (A4, deriv_2_out);
 
 	// Running_avg over a 200ms window.
