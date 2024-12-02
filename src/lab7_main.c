@@ -17,6 +17,7 @@
 #include "stm32l432xx.h"
 #include <stdbool.h>
 #include "lib_ee152.h"
+#include "limits.h"
 
 // Dual_QRS indicates that both the left & right side of the algorithm believe
 // we have a QRS, and that we're not in the refractory period.
@@ -215,7 +216,17 @@ void task_main_loop (void *pvParameters) {
 
 	// Right-side processing
 	// Fancy 5-point derivative of the bandpass-filtered signal.
+	int max_deriv = INT_MIN;
+	int min_deriv = INT_MAX;
 	int deriv_2 = deriv_5pt (filtered, &deriv_5pt_state);
+	if(min_deriv < deriv_2){
+		min_deriv == deriv_2;
+	}
+	if(max_deriv > deriv_2){
+		max_deriv == deriv_2;
+	}
+
+
 	int deriv_sq_2 = deriv_2 * deriv_2;
 	uint8_t deriv_2_out = (deriv_2 + 2048) >> 4;
 	analogWrite (A4, deriv_2_out);
