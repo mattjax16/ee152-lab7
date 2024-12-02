@@ -230,10 +230,13 @@ void task_main_loop (void *pvParameters) {
 	++refractory_counter;
 	dual_QRS = (filtered > thresh_1) && (avg_200ms_2 > thresh_2)
 		&& (refractory_counter > REFRACTORY_TICKS);
-	if (dual_QRS_last && !dual_QRS) refractory_counter = 0;
+	if (dual_QRS_last && !dual_QRS) {
+		refractory_counter = 0;
+	}
 	// Write to DAC 2, which drives Nano pin A4.
 	//analogWrite (A4, dual_QRS);
-	digitalWrite(D12, 1);
+	// write QRS to a GPIO pin
+	digitalWrite(D6, dual_QRS);
     }
 }
 
