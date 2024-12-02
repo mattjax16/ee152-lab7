@@ -219,7 +219,9 @@ void task_main_loop (void *pvParameters) {
 	int deriv_2 = deriv_5pt (filtered, &deriv_5pt_state);
 
 
-	// Range is 255
+	// Range is 245 with min value of -58 so we add to 58
+
+	deriv_2 = deriv_2 + 58;
 
 
 
