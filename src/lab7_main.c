@@ -204,6 +204,7 @@ void task_main_loop (void *pvParameters) {
 	for (int i=0; i<N_BIQUAD_SECS; ++i)
 	    filtered = biquad(&biquad_20Hz_lowpass[i],
 			      &biquad_state[i], filtered, 12);
+	//analogWrite (A4, filtered >> 4);
 
 	// Left-side analysis
 	// Peak_1 is usually 0; but when the bandpass-filtered signal hits a
@@ -354,7 +355,7 @@ void task_displaybpm(void *pvParameters) {
 }
 
 #define TICKS_PER_PT 2	// Typically 500 Hz sampling, so TICKS_PER_PT=2
-#define ECG_DATA_FILE "ecg_normal_board_calm1.txt"
+#define ECG_DATA_FILE "phaidra_formatted.csv"
 // "ecg_normal_board_calm1.txt"
 // "phaidra_formatted.csv"
 static unsigned short int ECG_data[] = {
