@@ -57,8 +57,10 @@ def plot_what_you_want():
     # Plot a line for y=0 if desired. If not, then just comment this out.
     n_pts = values[0].size
     x_axis = np.arange (n_pts,dtype=float) * .002
-    plt.plot (x_axis, np.zeros_like(values[0]))
+    plt.plot (x_axis, np.zeros_like(values[0]), label="y=0")
 
+    plt.xlabel("Time (s)")
+    plt.ylabel("Amplitude")
     plt.legend (loc="upper right")
     plt.show()
 

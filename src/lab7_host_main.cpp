@@ -198,52 +198,64 @@ int compute_peak (int sample, struct compute_peak_state *state) {
 
 #define REFRACTORY_TICKS 100 // 200 ms at 500 Hz
 int main() {
+    // Open output file
+    ofstream out_file("run.out");
+    if (!out_file.is_open()) {
+        DIE("Cannot open output file run.out");
+    }
+
+    // Write header line for signals
+    out_file << "sample filtered peak_1 deriv_2 deriv_sq_2 dual_QRS\n";
+
     LOG("sample\tfiltered\tpeak_1\tderiv_2\tderiv_sq_2\tdual_QRS");
 
-    int sample_count=0;	// To ignore startup artifacts.
-    // Refractory_counter is zeroed at dual_QRS falling edge, and counts up each
-    // tick after that. It's to ignore new peaks too close to an existing one.
-    int refractory_counter = 0;
+    int sample_count = 0; // To ignore startup artifacts.
+    int refractory_counter = 0; // Refractory counter for QRS detection
     struct compute_peak_state peak_state_1, peak_state_2;
 
-    for ( ;; ) {
-	// Read ADC, using a spin-wait loop.
-	uint32_t sample = analogRead ("ecg_normal_board_calm1.txt");
-	sample *= 2;
-	if (sample == -1) break;
+    for (;;) {
+        // Read ADC sample
+        uint32_t sample = analogRead("phaidra_formatted.txt");
+        if (sample == -1) break; // End of file
+        sample *= 2; // Example scaling, if needed
 
-	// Run it through one or more cascaded biquads.
-	int filtered = sample;
-	for (int i=0; i<N_BIQUAD_SECS; ++i)
-	    filtered = biquad(&biquad_20Hz_lowpass[i],
-			      &biquad_state[i], filtered, 12);
+        // Process signal through biquad filters
+        int filtered = sample;
+        for (int i = 0; i < N_BIQUAD_SECS; ++i)
+            filtered = biquad(&biquad_20Hz_lowpass[i], &biquad_state[i], filtered, 12);
 
-	// Left-side analysis
-	// Peak_1 is usually 0; but when the bandpass-filtered signal hits a
-	// peak, then peak_1 is the bandpass-filtered signal.
-	int peak_1   = compute_peak (filtered, &peak_state_1);
-	int thresh_1 = threshold (&threshold_state_1, peak_1);
+        // Left-side analysis (Peak and threshold)
+        int peak_1 = compute_peak(filtered, &peak_state_1);
+        int thresh_1 = threshold(&threshold_state_1, peak_1);
 
-	// Right-side processing
-	// Fancy 5-point derivative of the bandpass-filtered signal.
-	int deriv_2 = deriv_5pt (filtered, &deriv_5pt_state);
-	int deriv_sq_2 = deriv_2 * deriv_2;
+        // Right-side processing (Derivative and squared derivative)
+        int deriv_2 = deriv_5pt(filtered, &deriv_5pt_state);
+        int deriv_sq_2 = deriv_2 * deriv_2;
 
-	// Running_avg over a 200ms window.
-	int avg_200ms_2 = window_ravg(deriv_sq_2);
+        // Running average over a 200 ms window
+        int avg_200ms_2 = window_ravg(deriv_sq_2);
 
-	// Right-side analysis
-	int peak_2 = compute_peak (avg_200ms_2, &peak_state_2);
-	if (++sample_count < 250) continue;
-	int thresh_2 = threshold (&threshold_state_2, peak_2);
+        // Right-side analysis (Peak and threshold)
+        int peak_2 = compute_peak(avg_200ms_2, &peak_state_2);
+        if (++sample_count < 250) continue;
+        int thresh_2 = threshold(&threshold_state_2, peak_2);
 
-	// Dual-QRS calculation combining left & right sides.
-	dual_QRS_last = dual_QRS;	// pipe stage for edge detect.
-	++refractory_counter;
-	dual_QRS = (filtered > thresh_1) && (avg_200ms_2 > thresh_2)
-		&& (refractory_counter > REFRACTORY_TICKS);
-	if (dual_QRS_last && !dual_QRS) refractory_counter = 0;
+        // QRS detection
+        dual_QRS_last = dual_QRS; // Pipe stage for edge detect
+        ++refractory_counter;
+        dual_QRS = (filtered > thresh_1) && (avg_200ms_2 > thresh_2) &&
+                   (refractory_counter > REFRACTORY_TICKS);
+        if (dual_QRS_last && !dual_QRS) refractory_counter = 0;
 
-	LOG(sample<<"\t"<<filtered<<"\t"<<peak_1<<"\t"<<deriv_2<<"\t"<<deriv_sq_2<<"\t"<<dual_QRS);
+        // Log to console
+        LOG(sample << "\t" << filtered << "\t" << peak_1 << "\t" << deriv_2 << "\t"
+                   << deriv_sq_2 << "\t" << dual_QRS);
+
+        // Write to output file
+        out_file << sample << " " << filtered << " " << peak_1 << " " << deriv_2 << " "
+                 << deriv_sq_2 << " " << dual_QRS << "\n";
     }
+
+    // Close the output file
+    out_file.close();
 }
