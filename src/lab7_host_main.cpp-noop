@@ -215,7 +215,7 @@ int main() {
 
     for (;;) {
         // Read ADC sample
-        uint32_t sample = analogRead("phaidra_formatted.txt");
+        uint32_t sample = analogRead("ecg_normal_board_calm1.txt");
         if (sample == -1) break; // End of file
         sample *= 2; // Example scaling, if needed
 

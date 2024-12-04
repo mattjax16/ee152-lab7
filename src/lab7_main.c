@@ -17,6 +17,7 @@
 #include "stm32l432xx.h"
 #include <stdbool.h>
 #include "lib_ee152.h"
+#include <stdio.h>
 
 // Dual_QRS indicates that both the left & right side of the algorithm believe
 // we have a QRS, and that we're not in the refractory period.
@@ -215,7 +216,23 @@ void task_main_loop (void *pvParameters) {
 	int deriv_2 = deriv_5pt (filtered, &deriv_5pt_state);
 	int deriv_sq_2 = deriv_2 * deriv_2;
 	//uint8_t deriv_2_out = (deriv_2 + 58);
-	//analogWrite (A4, deriv_2_out);
+
+	// making the scaling universal across all input files (aka phaidra's)
+	static int running_min = 0;
+    static int running_max = 0;
+	if (deriv_2 < running_min) {
+		running_min = deriv_2;
+	}
+	if (deriv_2 > running_max) {
+		running_max = deriv_2;
+	}
+
+	int range = running_max - running_min;
+	if (range == 0) {
+		range = 1;  // Prevent division by zero
+	}
+    uint8_t deriv_output = ((deriv_2 - running_min) * 255) / range;
+	//analogWrite (A4, deriv_output);    
 
 	// Running_avg over a 200ms window.
 	int avg_200ms_2 = window_ravg(deriv_sq_2);
@@ -338,7 +355,8 @@ void task_displaybpm(void *pvParameters) {
 
 #define TICKS_PER_PT 2	// Typically 500 Hz sampling, so TICKS_PER_PT=2
 #define ECG_DATA_FILE "ecg_normal_board_calm1.txt"
-// #define ECG_DATA_FILE "phaidra_formatted.txt"
+// "ecg_normal_board_calm1.txt"
+// "phaidra_formatted.csv"
 static unsigned short int ECG_data[] = {
 #include ECG_DATA_FILE
 };
