@@ -129,7 +129,7 @@ struct threshold_state {
     int decay; // amount that max and min thresholds decay each sample
 };
 struct threshold_state threshold_state_1 = { 0x7FF, 0x000, 0xFFF, 15 };
-struct threshold_state threshold_state_2 = { 0x7FF, 0x000, 0x2FF, 4 };
+struct threshold_state threshold_state_2 = { 0x500, 0x000, 0xFFF, 2 };
 
 // The moving-threshold algorithm.
 // It always keeps a running min & running max. Each time we get a new sample
@@ -232,7 +232,7 @@ void task_main_loop (void *pvParameters) {
 	if (range == 0) {
 		range = 1;  // Prevent division by zero
 	}
-    uint8_t deriv_output = ((deriv_2 - running_min) * 255) / range;
+    int deriv_output = ((deriv_2 - running_min) * 255) / range;
 	//analogWrite (A4, deriv_output);    
 
 	// Running_avg over a 200ms window.
@@ -243,18 +243,23 @@ void task_main_loop (void *pvParameters) {
 	if (++sample_count < 250) continue;
 	int thresh_2 = threshold (&threshold_state_2, peak_2);
 
-	// Dual-QRS calculation combining left & right sides.
+	// // Dual-QRS calculation combining left & right sides.
 	dual_QRS_last = dual_QRS;	// pipe stage for edge detect.
 	++refractory_counter;
-	dual_QRS = (filtered > thresh_1) && (avg_200ms_2 > thresh_2)
-		&& (refractory_counter > REFRACTORY_TICKS);
+	// dual_QRS = (filtered > thresh_1) && (avg_200ms_2 > thresh_2)
+	// 	&& (refractory_counter > REFRACTORY_TICKS);
+	int left_QRS = (refractory_counter > REFRACTORY_TICKS) && (filtered > thresh_1);
+	int right_QRS = (refractory_counter > REFRACTORY_TICKS) && (avg_200ms_2 > thresh_2);
+	dual_QRS = left_QRS && right_QRS;
+	// left is good to go! it includes the R to S range
+	// right is only doing the R to T range... hmm
+
 	if (dual_QRS_last && !dual_QRS) {
 		refractory_counter = 0;
 	}
 	// Write to DAC 2, which drives Nano pin A4.
 	//analogWrite (A4, dual_QRS);
-	// write QRS to a GPIO pin
-	digitalWrite(D6, dual_QRS);
+	digitalWrite(D6, left_QRS);
     }
 }
 
@@ -355,9 +360,9 @@ void task_displaybpm(void *pvParameters) {
 }
 
 #define TICKS_PER_PT 2	// Typically 500 Hz sampling, so TICKS_PER_PT=2
-#define ECG_DATA_FILE "phaidra_formatted.csv"
+#define ECG_DATA_FILE "phaidra_formatted.txt"
 // "ecg_normal_board_calm1.txt"
-// "phaidra_formatted.csv"
+// "phaidra_formatted.txt"
 static unsigned short int ECG_data[] = {
 #include ECG_DATA_FILE
 };
