@@ -39,7 +39,7 @@ struct biquadcoeffs {	// The coefficients of a single biquad section.
 // A [58,62]Hz 2nd-order notch filter:
 static struct biquadcoeffs biquad_60Hz_notch[2] = {
 	{.96508099, -1.40747202, .96508099,  1., -1.40810535, .96443153},
-	{1.,        -1.45839783, 1.,         1., -1.45687509, .96573127}};
+	{1.,        -1.45839783, 1.,         1., -1.45687509, .96573127}};		// THIS ONE WORKS FOR PHAIDRAS <3 <3 <3
 static struct biquadcoeffs biquad_40Hz_LP2[1] = {
 	{.0461318,    .0922636,  .0461318,   1., -1.30728503, .49181224}};
 static struct biquadcoeffs biquad_40Hz_LP4[2] = {
