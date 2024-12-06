@@ -30,12 +30,26 @@ static bool dual_QRS_last = false;
 // Biquad filtering.
 //****************************************************
 
+#define BIQUAD_FILTER biquad_60Hz_notch
+
 struct biquadcoeffs {	// The coefficients of a single biquad section.
     float b0, b1, b2,	// numerator
 	  a0, a1, a2;	// denominator
 };
+// A [58,62]Hz 2nd-order notch filter:
+static struct biquadcoeffs biquad_60Hz_notch[2] = {
+	{.96508099, -1.40747202, .96508099,  1., -1.40810535, .96443153},
+	{1.,        -1.45839783, 1.,         1., -1.45687509, .96573127}};
+static struct biquadcoeffs biquad_40Hz_LP2[1] = {
+	{.0461318,    .0922636,  .0461318,   1., -1.30728503, .49181224}};
+static struct biquadcoeffs biquad_40Hz_LP4[2] = {
+	{.00223489,   .00446978,  .00223489, 1., -1.21281209, .38400416},
+	{1.,          2.,         1.,        1., -1.47979889, .68867695}};
+static struct biquadcoeffs biquad_20Hz_LP4[2] = {
+	{.000183216023,.000366432047,.000183216023, 1,-1.57523998,.626334259},
+	{1.,          2.,         1.,        1., -1.76882786, .826201333}};
+
 // Our 20Hz lowpass filter is built from two biquad sections.
-#define N_BIQUAD_SECS 2	// Number of biquad sections in our filter.
 static struct biquadcoeffs biquad_20Hz_lowpass[2] = {
 	{8.59278969e-05f, 1.71855794e-04f, 8.59278969e-05f,
 	 1.0f,		-1.77422345e+00f, 7.96197268e-01f},
@@ -43,6 +57,7 @@ static struct biquadcoeffs biquad_20Hz_lowpass[2] = {
 	 1.0f,	-1.84565849e+00f,	9.11174670e-01f}};
 
 // All DSP filters need state.
+#define N_BIQUAD_SECS (sizeof (BIQUAD_FILTER) / sizeof (struct biquadcoeffs))
 struct biquadstate { float x_nm1, x_nm2, y_nm1, y_nm2; };
 static struct biquadstate biquad_state[N_BIQUAD_SECS] = {0};
 
@@ -201,9 +216,9 @@ void task_main_loop (void *pvParameters) {
 
 	// Run it through one or more cascaded biquads.
 	int filtered = sample;
-	for (int i=0; i<N_BIQUAD_SECS; ++i)
-	    filtered = biquad(&biquad_20Hz_lowpass[i],
-			      &biquad_state[i], filtered, 12);
+       for (int i=0; i<N_BIQUAD_SECS; ++i) {
+            filtered = biquad(&BIQUAD_FILTER[i],&biquad_state[i],filtered,12);
+        }
 	//analogWrite (A4, filtered >> 4);
 
 	// Left-side analysis
